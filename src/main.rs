@@ -3,7 +3,7 @@ use std::num::NonZeroU32;
 use std::rc::Rc;
 use tiny_skia::{FillRule, Paint, PathBuilder, Pixmap, Transform};
 use wasm_bindgen::prelude::*;
-use web_sys::{HtmlElement, window};
+use web_sys::{Event, Performance, window};
 use winit::application::ApplicationHandler;
 use winit::dpi::LogicalSize;
 use winit::event::WindowEvent;
@@ -18,11 +18,23 @@ extern "C" {
     fn log(s: &str);
 }
 
+macro_rules! console_log {
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
+
+fn performance() -> Performance {
+    window()
+        .and_then(|win| win.performance())
+        .expect("Could not access the performance")
+}
+
 #[derive(Default)]
 struct App {
     window: Option<Rc<Window>>,
     context: Option<Context<Rc<Window>>>,
     surface: Option<Surface<Rc<Window>, Rc<Window>>>,
+    start_time: f64,
+    frame_count: i32,
 }
 
 impl ApplicationHandler for App {
@@ -56,6 +68,7 @@ impl ApplicationHandler for App {
         self.window = Some(rc_win);
         self.context = Some(ctx);
         self.surface = Some(surf);
+        self.start_time = performance().now();
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _: WindowId, event: WindowEvent) {
@@ -84,7 +97,7 @@ impl ApplicationHandler for App {
                         .unwrap();
 
                 let mut paint = Paint::default();
-                paint.set_color_rgba8(128, 0, 0, 255);
+                paint.set_color_rgba8(200, 200, 200, 255);
                 pixmap.fill_path(
                     &path,
                     &paint,
@@ -100,17 +113,54 @@ impl ApplicationHandler for App {
                         | (pixmap.data()[index * 4 + 0] as u32) << 16;
                 }
                 buffer.present().unwrap();
-                // self.window.as_ref().unwrap().request_redraw();
+
+                self.frame_count += 1;
+                self.window.as_ref().unwrap().request_redraw();
+
+                let now_ms = performance().now();
+                if now_ms > self.start_time + (1000 * 5) as f64 {
+                    let elapsed_secs = (now_ms - self.start_time) / 1000.0;
+                    let fps = (self.frame_count as f32) / (elapsed_secs as f32);
+                    console_log!("{:.2}fps", fps);
+
+                    event_loop.exit();
+                    if let Some(rc_win) = self.window.take() {
+                        drop(rc_win);
+                    }
+                    let _ = self.context.take();
+                    let _ = self.surface.take();
+                }
             }
             _ => (),
         }
     }
 }
 
-fn main() {
-    console_error_panic_hook::set_once();
+fn start_win() {
     let event_loop = EventLoop::new().unwrap();
     event_loop.set_control_flow(ControlFlow::Wait);
     let app = App::default();
     event_loop.spawn_app(app);
+}
+
+fn main() {
+    console_error_panic_hook::set_once();
+
+    // insert start button
+    let document = window()
+        .and_then(|win| win.document())
+        .expect("Could not access the document");
+    let body = document.body().expect("Could not access document.body");
+    let button = document.create_element("button").unwrap();
+
+    let cb = Closure::wrap(Box::new(|_: Event| {
+        start_win();
+    }) as Box<dyn FnMut(_)>);
+
+    button.set_text_content(Some("Start"));
+    button
+        .add_event_listener_with_callback("click", &cb.as_ref().unchecked_ref())
+        .unwrap();
+    body.append_child(button.as_ref()).unwrap();
+    cb.forget();
 }
