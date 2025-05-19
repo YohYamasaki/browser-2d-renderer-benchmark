@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Hello World</title>
-    <style>
-      canvas {
-        width: 800px;
-        height: 600px;
-      }
-    </style>
-  <link rel="modulepreload" href="/winit-tiny-skia-f0296c949d540b98.js" crossorigin="anonymous" integrity="sha384-OxNt8jMa4ArR+z42Hh07uzDZI7g4Ub1dyAduCXkMaYRXgfWCHAPZQajCMw16Yims"><link rel="preload" href="/winit-tiny-skia-f0296c949d540b98_bg.wasm" crossorigin="anonymous" integrity="sha384-m1oNQnO35jknCq557SznnplL1/wMlnw7yGhPbUjd7TLGNLprtIw5G2dfvRtT/rj1" as="fetch" type="application/wasm"></head>
-  <body>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Hello World</title>
+  <style>
+    canvas {
+      width: 250px;
+      height: 250px;
+    }
+  </style>
+<link rel="modulepreload" href="/winit-tiny-skia-cc8a4f17f2624976.js" crossorigin="anonymous" integrity="sha384-CpQqfndeFcGSZ0Xr1f50cEVuOzUb/7HYVe75fzUcciKB9Oi/dTm5I/qFTVvNHUNa"><link rel="preload" href="/winit-tiny-skia-cc8a4f17f2624976_bg.wasm" crossorigin="anonymous" integrity="sha384-+4RHy2IpBTUbJTR8LsTzIvNetupjwPzJraUwVQYBhWGJCc2tyooSm+x6zUMkV57S" as="fetch" type="application/wasm"></head>
+
+<body>
 <script type="module">
-import init, * as bindings from '/winit-tiny-skia-f0296c949d540b98.js';
-const wasm = await init({ module_or_path: '/winit-tiny-skia-f0296c949d540b98_bg.wasm' });
+import init, * as bindings from '/winit-tiny-skia-cc8a4f17f2624976.js';
+const wasm = await init({ module_or_path: '/winit-tiny-skia-cc8a4f17f2624976_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -151,4 +153,5 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
 })()
 </script></body>
+
 </html>

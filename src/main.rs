@@ -1,7 +1,8 @@
+use pixels::{Error, Pixels, PixelsBuilder, SurfaceTexture};
 use softbuffer::{Context, Surface};
 use std::num::NonZeroU32;
 use std::rc::Rc;
-use tiny_skia::{FillRule, Paint, PathBuilder, Pixmap, Transform};
+use tiny_skia::Pixmap;
 use wasm_bindgen::prelude::*;
 use web_sys::{Event, Performance, window};
 use winit::application::ApplicationHandler;
@@ -11,6 +12,11 @@ use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 #[cfg(target_arch = "wasm32")]
 use winit::platform::web::EventLoopExtWebSys;
 use winit::window::{Window, WindowId};
+
+mod shape;
+
+const WIDTH: u32 = 500;
+const HEIGHT: u32 = 500;
 
 #[wasm_bindgen]
 extern "C" {
@@ -29,26 +35,34 @@ fn performance() -> Performance {
 }
 
 #[derive(Default)]
-struct App {
+struct App<'a> {
     window: Option<Rc<Window>>,
     context: Option<Context<Rc<Window>>>,
     surface: Option<Surface<Rc<Window>, Rc<Window>>>,
+    pixels: Option<Pixels<'a>>,
     start_time: f64,
     frame_count: i32,
 }
 
-impl ApplicationHandler for App {
+impl ApplicationHandler for App<'_> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let win = event_loop
             .create_window(
-                Window::default_attributes().with_inner_size(LogicalSize::new(800.0, 600.0)),
+                Window::default_attributes().with_inner_size(LogicalSize::new(WIDTH, HEIGHT)),
             )
             .unwrap();
 
-        // 2. initialise context and surface
+        // initialise surface with pixels
         let rc_win = Rc::new(win);
         let ctx = Context::new(rc_win.clone()).unwrap();
         let surf = Surface::new(&ctx, rc_win.clone()).unwrap();
+        let pixels = {
+            let window_size = rc_win.clone().inner_size();
+            let surface_texture =
+                SurfaceTexture::new(window_size.width, window_size.height, rc_win.clone());
+
+            PixelsBuilder::new(WIDTH, HEIGHT, surface_texture).build()?
+        };
 
         // Append window to canvas element
         let document = window()
@@ -92,19 +106,7 @@ impl ApplicationHandler for App {
                     .unwrap();
 
                 let mut pixmap = Pixmap::new(width, height).unwrap();
-                let path =
-                    PathBuilder::from_circle((width / 2) as f32, (height / 2) as f32, 100 as f32)
-                        .unwrap();
-
-                let mut paint = Paint::default();
-                paint.set_color_rgba8(200, 200, 200, 255);
-                pixmap.fill_path(
-                    &path,
-                    &paint,
-                    FillRule::EvenOdd,
-                    Transform::identity(),
-                    None,
-                );
+                shape::draw(&mut pixmap, performance().now() as f32);
 
                 let mut buffer = self.surface.as_mut().unwrap().buffer_mut().unwrap();
                 for index in 0..(width * height) as usize {
@@ -138,7 +140,7 @@ impl ApplicationHandler for App {
 
 fn start_win() {
     let event_loop = EventLoop::new().unwrap();
-    event_loop.set_control_flow(ControlFlow::Wait);
+    event_loop.set_control_flow(ControlFlow::Poll);
     let app = App::default();
     event_loop.spawn_app(app);
 }
