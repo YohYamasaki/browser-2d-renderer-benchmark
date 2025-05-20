@@ -1,4 +1,3 @@
-use pixels::{Error, Pixels, PixelsBuilder, SurfaceTexture};
 use softbuffer::{Context, Surface};
 use std::num::NonZeroU32;
 use std::rc::Rc;
@@ -35,16 +34,15 @@ fn performance() -> Performance {
 }
 
 #[derive(Default)]
-struct App<'a> {
+struct App {
     window: Option<Rc<Window>>,
     context: Option<Context<Rc<Window>>>,
     surface: Option<Surface<Rc<Window>, Rc<Window>>>,
-    pixels: Option<Pixels<'a>>,
     start_time: f64,
     frame_count: i32,
 }
 
-impl ApplicationHandler for App<'_> {
+impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         let win = event_loop
             .create_window(
@@ -56,14 +54,6 @@ impl ApplicationHandler for App<'_> {
         let rc_win = Rc::new(win);
         let ctx = Context::new(rc_win.clone()).unwrap();
         let surf = Surface::new(&ctx, rc_win.clone()).unwrap();
-        let pixels = {
-            let window_size = rc_win.clone().inner_size();
-            let surface_texture =
-                SurfaceTexture::new(window_size.width, window_size.height, rc_win.clone());
-
-            PixelsBuilder::new(WIDTH, HEIGHT, surface_texture).build()?
-        };
-
         // Append window to canvas element
         let document = window()
             .and_then(|win| win.document())
