@@ -1,3 +1,4 @@
+use pixels::{PixelsBuilder, SurfaceTexture};
 use softbuffer::{Context, Surface};
 use std::num::NonZeroU32;
 use std::rc::Rc;
@@ -33,27 +34,34 @@ fn performance() -> Performance {
         .expect("Could not access the performance")
 }
 
-#[derive(Default)]
-struct App {
-    window: Option<Rc<Window>>,
-    context: Option<Context<Rc<Window>>>,
-    surface: Option<Surface<Rc<Window>, Rc<Window>>>,
+struct World {
+    box_x: i16,
+    box_y: i16,
+    velocity_x: i16,
+    velocity_y: i16,
+}
+struct App<'a> {
+    window: Rc<Window>,
+    pixels: Result<pixels::Pixels<'a>, pixels::Error>,
     start_time: f64,
     frame_count: i32,
 }
 
-impl ApplicationHandler for App {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        let win = event_loop
-            .create_window(
-                Window::default_attributes().with_inner_size(LogicalSize::new(WIDTH, HEIGHT)),
-            )
-            .unwrap();
+impl<'a> App<'a> {
+    fn new(window: Rc<Window>, pixels: Result<pixels::Pixels<'a>, pixels::Error>) -> App<'a> {
+        App {
+            window,
+            pixels,
+            start_time: 0.0,
+            frame_count: 0,
+        }
+    }
+}
 
-        // initialise surface with pixels
-        let rc_win = Rc::new(win);
-        let ctx = Context::new(rc_win.clone()).unwrap();
-        let surf = Surface::new(&ctx, rc_win.clone()).unwrap();
+impl<'a> ApplicationHandler for App<'a> {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        // ここでwindowの初期化
+
         // Append window to canvas element
         let document = window()
             .and_then(|win| win.document())
@@ -61,17 +69,14 @@ impl ApplicationHandler for App {
         let body = document.body().expect("Could not access document.body");
 
         use winit::platform::web::WindowExtWebSys;
-        let winit_canvas = rc_win
+        let winit_canvas = self
+            .window
             .clone()
             .canvas()
             .expect("Failed to load canvas element");
         body.append_child(winit_canvas.as_ref())
             .expect("failed to append canvas");
 
-        // Store all to fields
-        self.window = Some(rc_win);
-        self.context = Some(ctx);
-        self.surface = Some(surf);
         self.start_time = performance().now();
     }
 
@@ -82,6 +87,7 @@ impl ApplicationHandler for App {
                 event_loop.exit();
             }
             WindowEvent::RedrawRequested => {
+                // レンダリングのsurfaceへのアクセスを変更する
                 let (width, height) = {
                     let size = self.window.as_ref().unwrap().inner_size();
                     (size.width, size.height)
@@ -128,10 +134,39 @@ impl ApplicationHandler for App {
     }
 }
 
-fn start_win() {
+async fn start_win() {
     let event_loop = EventLoop::new().unwrap();
     event_loop.set_control_flow(ControlFlow::Poll);
-    let app = App::default();
+
+    // winをOptionか空の状態でAppに保存して、resumed内で初期化する
+    let win = event_loop
+        .create_window(
+            Window::default_attributes().with_inner_size(LogicalSize::new(WIDTH, HEIGHT)),
+        )
+        .unwrap();
+
+    // initialise surface with pixels
+    let win = Rc::new(win);
+
+    let pixels = {
+        #[cfg(target_arch = "wasm32")]
+        let surface_texture = SurfaceTexture::new(WIDTH, HEIGHT, win.clone());
+        let builder = PixelsBuilder::new(WIDTH, HEIGHT, surface_texture);
+
+        #[cfg(target_arch = "wasm32")]
+        let builder = {
+            // Web targets do not support the default texture format
+            let texture_format = pixels::wgpu::TextureFormat::Rgba8Unorm;
+            builder
+                .texture_format(texture_format)
+                .surface_texture_format(texture_format)
+        };
+
+        builder.build_async().await
+    };
+
+    // Store all to fields
+    let app = App::new(win, pixels);
     event_loop.spawn_app(app);
 }
 
@@ -146,7 +181,8 @@ fn main() {
     let button = document.create_element("button").unwrap();
 
     let cb = Closure::wrap(Box::new(|_: Event| {
-        start_win();
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        wasm_bindgen_futures::spawn_local(start_win());
     }) as Box<dyn FnMut(_)>);
 
     button.set_text_content(Some("Start"));

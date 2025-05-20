@@ -2542,6 +2542,7 @@ dependencies = [
  "softbuffer",
  "tiny-skia",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
  "winit",
 ]
