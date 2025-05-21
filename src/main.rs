@@ -81,7 +81,7 @@ impl<'a> ApplicationHandler for App<'a> {
                 event_loop.exit();
             }
             WindowEvent::RedrawRequested => {
-                shape::draw(&mut self.pixmap, performance().now() as f32);
+                shape::draw(&mut self.pixmap, self.frame_count as f32);
                 self.pixels.frame_mut().copy_from_slice(self.pixmap.data());
                 // Draw the current frame
                 if let Err(err) = self.pixels.render() {
