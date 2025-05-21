@@ -1,10 +1,9 @@
-use pixels::{PixelsBuilder, SurfaceTexture};
-use softbuffer::{Context, Surface};
+use pixels::{Pixels, PixelsBuilder, SurfaceTexture};
 use std::num::NonZeroU32;
 use std::rc::Rc;
 use tiny_skia::Pixmap;
 use wasm_bindgen::prelude::*;
-use web_sys::{Event, Performance, window};
+use web_sys::{Event, Performance, console, window};
 use winit::application::ApplicationHandler;
 use winit::dpi::LogicalSize;
 use winit::event::WindowEvent;
@@ -17,6 +16,7 @@ mod shape;
 
 const WIDTH: u32 = 500;
 const HEIGHT: u32 = 500;
+const BOX_SIZE: i16 = 64;
 
 #[wasm_bindgen]
 extern "C" {
@@ -34,24 +34,20 @@ fn performance() -> Performance {
         .expect("Could not access the performance")
 }
 
-struct World {
-    box_x: i16,
-    box_y: i16,
-    velocity_x: i16,
-    velocity_y: i16,
-}
 struct App<'a> {
     window: Rc<Window>,
-    pixels: Result<pixels::Pixels<'a>, pixels::Error>,
+    pixels: Pixels<'a>,
+    pixmap: Pixmap,
     start_time: f64,
     frame_count: i32,
 }
 
 impl<'a> App<'a> {
-    fn new(window: Rc<Window>, pixels: Result<pixels::Pixels<'a>, pixels::Error>) -> App<'a> {
+    fn new(window: Rc<Window>, pixels: Pixels<'a>, pixmap: Pixmap) -> App<'a> {
         App {
             window,
             pixels,
+            pixmap,
             start_time: 0.0,
             frame_count: 0,
         }
@@ -59,9 +55,7 @@ impl<'a> App<'a> {
 }
 
 impl<'a> ApplicationHandler for App<'a> {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        // ここでwindowの初期化
-
+    fn resumed(&mut self, _: &ActiveEventLoop) {
         // Append window to canvas element
         let document = window()
             .and_then(|win| win.document())
@@ -87,33 +81,23 @@ impl<'a> ApplicationHandler for App<'a> {
                 event_loop.exit();
             }
             WindowEvent::RedrawRequested => {
-                // レンダリングのsurfaceへのアクセスを変更する
-                let (width, height) = {
-                    let size = self.window.as_ref().unwrap().inner_size();
-                    (size.width, size.height)
-                };
-                self.surface
-                    .as_mut()
-                    .unwrap()
-                    .resize(
-                        NonZeroU32::new(width).unwrap(),
-                        NonZeroU32::new(height).unwrap(),
-                    )
-                    .unwrap();
-
-                let mut pixmap = Pixmap::new(width, height).unwrap();
-                shape::draw(&mut pixmap, performance().now() as f32);
-
-                let mut buffer = self.surface.as_mut().unwrap().buffer_mut().unwrap();
-                for index in 0..(width * height) as usize {
-                    buffer[index] = pixmap.data()[index * 4 + 2] as u32
-                        | (pixmap.data()[index * 4 + 1] as u32) << 8
-                        | (pixmap.data()[index * 4 + 0] as u32) << 16;
+                shape::draw(&mut self.pixmap, performance().now() as f32);
+                self.pixels.frame_mut().copy_from_slice(self.pixmap.data());
+                // Draw the current frame
+                if let Err(err) = self.pixels.render() {
+                    console_log!("pixels.render: {}", err);
+                    event_loop.exit();
+                    return;
                 }
-                buffer.present().unwrap();
+                if let Err(err) = self.pixels.render() {
+                    console_log!("Failed to execute pixel.render(): {}", err.to_string());
+                    event_loop.exit();
+                    drop(self.window.clone());
+                    return;
+                }
 
                 self.frame_count += 1;
-                self.window.as_ref().unwrap().request_redraw();
+                self.window.request_redraw();
 
                 let now_ms = performance().now();
                 if now_ms > self.start_time + (1000 * 5) as f64 {
@@ -122,11 +106,7 @@ impl<'a> ApplicationHandler for App<'a> {
                     console_log!("{:.2}fps", fps);
 
                     event_loop.exit();
-                    if let Some(rc_win) = self.window.take() {
-                        drop(rc_win);
-                    }
-                    let _ = self.context.take();
-                    let _ = self.surface.take();
+                    drop(self.window.clone());
                 }
             }
             _ => (),
@@ -163,10 +143,12 @@ async fn start_win() {
         };
 
         builder.build_async().await
-    };
+    }
+    .expect("Failed to build Pixels");
 
+    let pixmap = Pixmap::new(WIDTH, HEIGHT).unwrap();
     // Store all to fields
-    let app = App::new(win, pixels);
+    let app = App::new(win, pixels, pixmap);
     event_loop.spawn_app(app);
 }
 
