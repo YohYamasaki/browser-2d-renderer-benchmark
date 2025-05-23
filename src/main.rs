@@ -1,6 +1,7 @@
+use bouncing_rect::BouncingRect;
 use pixels::{Pixels, PixelsBuilder, SurfaceTexture};
 use std::rc::Rc;
-use tiny_skia::Pixmap;
+use tiny_skia::{Color, Pixmap};
 use wasm_bindgen::prelude::*;
 use web_sys::{Event, Performance, window};
 use winit::application::ApplicationHandler;
@@ -11,15 +12,18 @@ use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::platform::web::EventLoopExtWebSys;
 use winit::window::{Window, WindowId};
 
-mod shape;
+mod bouncing_rect;
 
-const WIDTH: u32 = 500;
-const HEIGHT: u32 = 500;
+pub const WIDTH: u32 = 640;
+pub const HEIGHT: u32 = 480;
 
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     fn log(s: &str);
+
+    #[wasm_bindgen(js_namespace = Math)]
+    fn random() -> f64;
 }
 
 macro_rules! console_log {
@@ -32,10 +36,19 @@ fn performance() -> Performance {
         .expect("Could not access the performance")
 }
 
+fn get_rect_velocity() -> f32 {
+    let mut res = (1.0 + random() * 5.0) as f32;
+    if random() < 0.5 {
+        res *= -1.0
+    }
+    res
+}
+
 struct App<'a> {
     window: Rc<Window>,
     pixels: Pixels<'a>,
     pixmap: Pixmap,
+    rects: Vec<BouncingRect>,
     start_time: f64,
     frame_count: i32,
 }
@@ -45,6 +58,7 @@ impl<'a> App<'a> {
         App {
             window,
             pixels,
+            rects: vec![],
             pixmap,
             start_time: 0.0,
             frame_count: 0,
@@ -54,6 +68,12 @@ impl<'a> App<'a> {
 
 impl<'a> ApplicationHandler for App<'a> {
     fn resumed(&mut self, _: &ActiveEventLoop) {
+        // Set sample rectangle
+        for _ in 0..1000 {
+            let rect = BouncingRect::new(get_rect_velocity(), get_rect_velocity(), WIDTH, HEIGHT);
+            self.rects.push(rect);
+        }
+
         // Append window to canvas element
         let document = window()
             .and_then(|win| win.document())
@@ -79,7 +99,12 @@ impl<'a> ApplicationHandler for App<'a> {
                 event_loop.exit();
             }
             WindowEvent::RedrawRequested => {
-                shape::draw(&mut self.pixmap, self.frame_count as f32);
+                self.pixmap.fill(Color::from_rgba8(0, 0, 0, 255));
+
+                self.rects.iter().for_each(|rect| {
+                    rect.draw(&mut self.pixmap);
+                });
+
                 self.pixels.frame_mut().copy_from_slice(self.pixmap.data());
                 // Draw the current frame
                 if let Err(err) = self.pixels.render() {
@@ -95,10 +120,13 @@ impl<'a> ApplicationHandler for App<'a> {
                 }
 
                 self.frame_count += 1;
+                self.rects
+                    .iter_mut()
+                    .for_each(|rect| rect.update(WIDTH as i16, HEIGHT as i16));
                 self.window.request_redraw();
 
                 let now_ms = performance().now();
-                if now_ms > self.start_time + (1000 * 5) as f64 {
+                if now_ms > self.start_time + (1000 * 10) as f64 {
                     let elapsed_secs = (now_ms - self.start_time) / 1000.0;
                     let fps = (self.frame_count as f32) / (elapsed_secs as f32);
                     console_log!("{:.2}fps", fps);
@@ -116,7 +144,6 @@ async fn start_win() {
     let event_loop = EventLoop::new().unwrap();
     event_loop.set_control_flow(ControlFlow::Poll);
 
-    // winをOptionか空の状態でAppに保存して、resumed内で初期化する
     let win = event_loop
         .create_window(
             Window::default_attributes().with_inner_size(LogicalSize::new(WIDTH, HEIGHT)),
@@ -134,7 +161,7 @@ async fn start_win() {
         #[cfg(target_arch = "wasm32")]
         let builder = {
             // Web targets do not support the default texture format
-            let texture_format = pixels::wgpu::TextureFormat::Rgba8Unorm;
+            let texture_format = pixels::wgpu::TextureFormat::Bgra8Unorm;
             builder
                 .texture_format(texture_format)
                 .surface_texture_format(texture_format)
