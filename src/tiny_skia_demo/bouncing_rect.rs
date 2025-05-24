@@ -1,6 +1,15 @@
-use std::i16;
-
 use tiny_skia::*;
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+
+    #[wasm_bindgen(js_namespace = Math)]
+    fn random() -> f64;
+}
+
 const BOX_SIZE: i16 = 16;
 
 pub struct BouncingRect {
@@ -55,4 +64,29 @@ impl BouncingRect {
             None,
         )
     }
+
+    pub fn generate_rect(
+        rects: &mut Vec<BouncingRect>,
+        num: i32,
+        canvas_width: u32,
+        canvas_height: u32,
+    ) {
+        for _ in 0..num {
+            let rect = BouncingRect::new(
+                get_random_velocity(),
+                get_random_velocity(),
+                canvas_width,
+                canvas_height,
+            );
+            rects.push(rect);
+        }
+    }
+}
+
+fn get_random_velocity() -> f32 {
+    let mut res = (random() * 5.0) as f32;
+    if random() < 0.5 {
+        res *= -1.0
+    }
+    res
 }
