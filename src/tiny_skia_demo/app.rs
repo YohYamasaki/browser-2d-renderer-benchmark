@@ -117,7 +117,7 @@ impl ApplicationHandler for TinySkiaApp {
 
                     // exiting the event loop after 10 seconds
                     if now_ms - self.start_time > 10_000.0 {
-                        send_results_to_js(&self.results, "#tiny-skia");
+                        send_results_to_js(&self.results, "#tiny-skia-chart");
                         event_loop.exit();
                     }
                 }
