@@ -1,29 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8"/>
+  <head>
+    <meta charset="utf-8" />
     <title>2D renderer benchmarks</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/canvaskit-wasm@0.19.0/bin/canvaskit.js"
-            type="text/javascript"></script>
+    <script
+      src="https://unpkg.com/canvaskit-wasm@0.19.0/bin/canvaskit.js"
+      type="text/javascript"
+    ></script>
     <style>
-        .chart-wrap {
-            width: 400px;
-            height: 300px;
-        }
+      .chart-wrap {
+        width: 400px;
+        height: 300px;
+      }
 
-        #window-wrap {
-            border: 2px solid #ddd;
-            width: 400px;
-            height: 300px;
-        }
-
-        /*#canvaskit {*/
-        /*    width: 300px;*/
-        /*    height: 300px;*/
-        /*}*/
+      #window-wrap {
+        border: 2px solid #ddd;
+        width: 800px;
+        height: 600px;
+      }
     </style>
-</head>
+  </head>
 
   <body>
     <button id="start-canvaskit">Start Canvaskit benchmark</button>
@@ -32,60 +29,65 @@
     <button id="start-pixi">Start PixiJS Benchmark</button>
     <br />
 
-<div id="window-wrap"></div>
-<canvas id="canvaskit" width="800" height="600"></canvas>
-<canvas id="pixi-canvas" width="800" height="600"></canvas>
-
-<div class="chart-wrap">
-    <canvas class="chart" id="tiny-skia-chart"></canvas>
-    <canvas class="chart" id="canvaskit-chart"></canvas>
-</div>
+    <div id="window-wrap"></div>
+    <canvas id="canvaskit" width="800" height="600"></canvas>
+    <canvas id="pixi-canvas" width="800" height="600"></canvas>
 
 
-<script type="module">
-    const tinySkiaEl = document.querySelector("#start-tiny-skia");
-    tinySkiaEl.addEventListener("click", () => {
+    <div class="chart-wrap">
+      <canvas class="chart" id="tiny-skia-chart"></canvas>
+      <canvas class="chart" id="canvaskit-chart"></canvas>
+    </div>
+
+    <script type="module">
+      const tinySkiaEl = document.querySelector("#start-tiny-skia");
+      tinySkiaEl.addEventListener("click", () => {
         window.wasmBindings.run_tiny_skia_benchmark();
-    });
-</script>
+      });
 
-<script>
-    const chartOption = {
+      const startVelloEl = document.querySelector("#start-vello");
+      startVelloEl.addEventListener("click", () => {
+        window.wasmBindings.run_vello_benchmark();
+      });
+    </script>
+
+    <script>
+      const chartOption = {
         scales: {
-            y: {
-                min: 0,
-                max: 60,
-                ticks: {
-                    stepSize: 10,
-                },
+          y: {
+            min: 0,
+            max: 60,
+            ticks: {
+              stepSize: 10,
             },
+          },
         },
-    };
+      };
 
-    function receiveResults(results, selector) {
+      function receiveResults(results, selector) {
         const sortedResults = [...results.entries()].sort(
-            (a, b) => a[0] - b[0]
+          (a, b) => a[0] - b[0]
         );
         let labels = [];
         let data = [];
 
         sortedResults.forEach(([key, value]) => {
-            labels.push(key);
-            data.push(value);
+          labels.push(key);
+          data.push(value);
         });
 
         const ctx = document.querySelector(selector).getContext("2d");
         const tinySkiaChart = new Chart(ctx, {
-            type: "line",
-            data: {
-                labels,
-                datasets: [{label: "fps", data}],
-            },
-            options: chartOption,
+          type: "line",
+          data: {
+            labels,
+            datasets: [{ label: "fps", data }],
+          },
+          options: chartOption,
         });
-    }
-</script>
-<script data-trunk src="./js/canvaskit_demo.js" type="module"></script>
-    <script data-trunk src="./js/pixijs_demo.js"type="module"></script>
+      }
+    </script>
+    <script data-trunk src="./js/canvaskit_demo.js" type="module"></script>
+  <script data-trunk src="./js/pixijs_demo.js"type="module"></script>
 </body>
 </html>

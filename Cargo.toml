@@ -7,11 +7,14 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+anyhow = "1.0.98"
 console_error_panic_hook = "0.1.7"
 serde-wasm-bindgen = "0.6.5"
 softbuffer = "0.4.6"
 tiny-skia = "0.11.4"
+vello = "0.5.0"
 wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.50"
 web-sys = { version = "0.3.77", features = ["Window", "Document", "HtmlElement", "Text", "Performance", "HtmlButtonElement"] }
 winit = "0.30.11"
+log = "0.4.27"
