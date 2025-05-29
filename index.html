@@ -25,15 +25,16 @@
     </style>
 </head>
 
-<body>
-<button id="start-canvaskit">Start Canvaskit benchmark</button>
-<button id="start-tiny-skia">Start tiny-skia benchmark</button>
-<br/>
+  <body>
+    <button id="start-canvaskit">Start Canvaskit benchmark</button>
+    <button id="start-tiny-skia">Start tiny-skia benchmark</button>
+    <button id="start-vello">Start vello benchmark</button>
+    <button id="start-pixi">Start PixiJS Benchmark</button>
+    <br />
 
 <div id="window-wrap"></div>
-<!--<div id="canvaskit-wrap">-->
-<canvas height="600" id="canvaskit" width="800"></canvas>
-<!--</div>-->
+<canvas id="canvaskit" width="800" height="600"></canvas>
+<canvas id="pixi-canvas" width="800" height="600"></canvas>
 
 <div class="chart-wrap">
     <canvas class="chart" id="tiny-skia-chart"></canvas>
@@ -85,5 +86,6 @@
     }
 </script>
 <script data-trunk src="./js/canvaskit_demo.js" type="module"></script>
+    <script data-trunk src="./js/pixijs_demo.js"type="module"></script>
 </body>
 </html>
