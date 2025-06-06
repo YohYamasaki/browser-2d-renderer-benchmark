@@ -1,93 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>2D renderer benchmarks</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script
-      src="https://unpkg.com/canvaskit-wasm@0.19.0/bin/canvaskit.js"
-      type="text/javascript"
-    ></script>
-    <style>
-      .chart-wrap {
-        width: 400px;
-        height: 300px;
-      }
 
-      #window-wrap {
-        border: 2px solid #ddd;
-        width: 800px;
-        height: 600px;
-      }
-    </style>
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <title>2D renderer benchmarks</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/canvaskit-wasm@0.19.0/bin/canvaskit.js" type="text/javascript"></script>
+  <style>
+    body {
+      font-family: monospace
+    }
 
-  <body>
-    <button id="start-canvaskit">Start Canvaskit benchmark</button>
-    <button id="start-tiny-skia">Start tiny-skia benchmark</button>
-    <button id="start-vello">Start vello benchmark</button>
-    <button id="start-pixi">Start PixiJS Benchmark</button>
-    <br />
+    input {
+      width: 60px;
+    }
 
-    <div id="window-wrap"></div>
-    <canvas id="canvaskit" width="800" height="600"></canvas>
-    <canvas id="pixi-canvas" width="800" height="600"></canvas>
+    .chart-wrap {
+      width: 400px;
+      height: 300px;
+    }
 
+    #window-wrap {
+      border: 2px solid #ddd;
+      width: 800px;
+      height: 600px;
+    }
 
-    <div class="chart-wrap">
-      <canvas class="chart" id="tiny-skia-chart"></canvas>
-      <canvas class="chart" id="canvaskit-chart"></canvas>
-    </div>
+    #fps-wrap {
+      font-size: 1.5rem;
+    }
+  </style>
+</head>
 
-    <script type="module">
-      const tinySkiaEl = document.querySelector("#start-tiny-skia");
-      tinySkiaEl.addEventListener("click", () => {
-        window.wasmBindings.run_tiny_skia_benchmark();
-      });
+<body>
+  <strong>Canvas size(px): </strong>
+  <label for="canvas-width">width</label>
+  <input id="canvas-width" name="canvas-width" type="text" value="800">
+  <label for="canvas-height">height</label>
+  <input id="canvas-height" name="canvas-height" type="text" value="600">
 
-      const startVelloEl = document.querySelector("#start-vello");
-      startVelloEl.addEventListener("click", () => {
-        window.wasmBindings.run_vello_benchmark();
-      });
-    </script>
+  <br><br>
 
-    <script>
-      const chartOption = {
-        scales: {
-          y: {
-            min: 0,
-            max: 60,
-            ticks: {
-              stepSize: 10,
-            },
-          },
-        },
-      };
+  <label for="box-size"><strong>Box size(px): </strong></label>
+  <input id="box-size" name="box-size" type="text" value="16">
+  <br><br>
 
-      function receiveResults(results, selector) {
-        const sortedResults = [...results.entries()].sort(
-          (a, b) => a[0] - b[0]
-        );
-        let labels = [];
-        let data = [];
+  <label for="box-number"><strong>Number of boxes: </strong></label>
+  <input id="box-number" name="box-number" type="text" value="1000">
 
-        sortedResults.forEach(([key, value]) => {
-          labels.push(key);
-          data.push(value);
-        });
+  <br>
+  <br>
 
-        const ctx = document.querySelector(selector).getContext("2d");
-        const tinySkiaChart = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels,
-            datasets: [{ label: "fps", data }],
-          },
-          options: chartOption,
-        });
-      }
-    </script>
-    <script data-trunk src="./js/canvaskit_demo.js" type="module"></script>
-  <script data-trunk src="./js/pixijs_demo.js"type="module"></script>
+  <button id="start-canvaskit">Start Canvaskit benchmark</button>
+  <button id="start-tiny-skia">Start tiny-skia benchmark</button>
+  <button id="start-vello">Start vello benchmark</button>
+  <button id="start-pixi">Start PixiJS Benchmark</button>
+  <button id="stop">Stop demo</button>
+  <br />
+
+  <div id="fps-wrap"><strong>Current frame per second: <span id="fps">--.--</span></strong></div>
+  <div id="window-wrap"></div>
+
+  <script>
+    const widthInputEl = document.querySelector("#canvas-width");
+    const heightInputEl = document.querySelector("#canvas-height");
+    const canvasWrapEl = document.querySelector("#window-wrap");
+
+    function updateCanvasBorder() {
+      canvasWrapEl.style.width = widthInputEl.value + "px";
+      canvasWrapEl.style.height = heightInputEl.value + "px";
+    }
+
+    widthInputEl.addEventListener("input", updateCanvasBorder);
+    heightInputEl.addEventListener("input", updateCanvasBorder)
+  </script>
+
+  <script type="module">
+    const tinySkiaEl = document.querySelector("#start-tiny-skia");
+    tinySkiaEl.addEventListener("click", () => {
+      window.wasmBindings.run_tiny_skia_benchmark();
+    });
+
+    const startVelloEl = document.querySelector("#start-vello");
+    startVelloEl.addEventListener("click", () => {
+      window.wasmBindings.run_vello_benchmark();
+    });
+  </script>
+  <script data-trunk src="./js/canvaskit_demo.js" type="module"></script>
+  <script data-trunk src="./js/pixijs_demo.js" type="module"></script>
 </body>
+
 </html>
