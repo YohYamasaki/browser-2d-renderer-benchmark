@@ -3,12 +3,12 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>2D renderer benchmarks</title>
+  <title>2D renderer demos</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/canvaskit-wasm@0.19.0/bin/canvaskit.js" type="text/javascript"></script>
   <style>
     body {
-      font-family: monospace
+      font-family: monospace;
     }
 
     input {
@@ -21,7 +21,7 @@
     }
 
     #window-wrap {
-      border: 2px solid #ddd;
+      border: 2px solid #aaa;
       width: 800px;
       height: 600px;
     }
@@ -35,30 +35,34 @@
 <body>
   <strong>Canvas size(px): </strong>
   <label for="canvas-width">width</label>
-  <input id="canvas-width" name="canvas-width" type="text" value="800">
+  <input id="canvas-width" name="canvas-width" type="text" value="800" />
   <label for="canvas-height">height</label>
-  <input id="canvas-height" name="canvas-height" type="text" value="600">
+  <input id="canvas-height" name="canvas-height" type="text" value="600" />
 
-  <br><br>
+  <br /><br />
 
   <label for="box-size"><strong>Box size(px): </strong></label>
-  <input id="box-size" name="box-size" type="text" value="16">
-  <br><br>
+  <input id="box-size" name="box-size" type="text" value="4" />
+  <br /><br />
 
   <label for="box-number"><strong>Number of boxes: </strong></label>
-  <input id="box-number" name="box-number" type="text" value="1000">
+  <input id="box-number" name="box-number" type="text" value="10000" />
 
-  <br>
-  <br>
-
-  <button id="start-canvaskit">Start Canvaskit benchmark</button>
-  <button id="start-tiny-skia">Start tiny-skia benchmark</button>
-  <button id="start-vello">Start vello benchmark</button>
-  <button id="start-pixi">Start PixiJS Benchmark</button>
-  <button id="stop">Stop demo</button>
+  <br />
   <br />
 
-  <div id="fps-wrap"><strong>Current frame per second: <span id="fps">--.--</span></strong></div>
+  <div id="start-wrap">
+    <button id="start-canvaskit">Start Canvaskit demo</button>
+    <button id="start-tiny-skia">Start tiny-skia demo</button>
+    <button id="start-vello">Start vello demo</button>
+    <button id="start-pixi">Start PixiJS demo</button>
+  </div>
+  <button id="stop" disabled>Stop demo</button>
+  <br />
+
+  <div id="fps-wrap">
+    <strong>Current frame per second: <span id="fps">--.--</span></strong>
+  </div>
   <div id="window-wrap"></div>
 
   <script>
@@ -72,19 +76,47 @@
     }
 
     widthInputEl.addEventListener("input", updateCanvasBorder);
-    heightInputEl.addEventListener("input", updateCanvasBorder)
+    heightInputEl.addEventListener("input", updateCanvasBorder);
+
+    let isDemoRunning = false;
+
+    const startWrapEl = document.querySelector("#start-wrap");
+    const startEls = startWrapEl.querySelectorAll("button");
+    const stopEl = document.querySelector("#stop");
+    startWrapEl.addEventListener("click", (e) => {
+      if (e.target.tagName === "BUTTON") {
+        startEls.forEach(el => el.disabled = true);
+        stopEl.disabled = false;
+      }
+    });
+    stopEl.addEventListener("click", () => {
+      startEls.forEach(el => el.disabled = false);
+      stopEl.disabled = true;
+    })
   </script>
 
   <script type="module">
     const tinySkiaEl = document.querySelector("#start-tiny-skia");
     tinySkiaEl.addEventListener("click", () => {
-      window.wasmBindings.run_tiny_skia_benchmark();
+      window.wasmBindings.run_tiny_skia_demo(...getDemoSettings());
     });
 
     const startVelloEl = document.querySelector("#start-vello");
     startVelloEl.addEventListener("click", () => {
-      window.wasmBindings.run_vello_benchmark();
+      window.wasmBindings.run_vello_demo(...getDemoSettings());
     });
+
+    const getDemoSettings = () => {
+      const canvasWidth = parseInt(
+        document.querySelector("#canvas-width").value
+      );
+      const canvasHeight = parseInt(
+        document.querySelector("#canvas-height").value
+      );
+      const boxSize = parseInt(document.querySelector("#box-size").value);
+      const boxNumber = parseInt(document.querySelector("#box-number").value);
+      return [canvasWidth, canvasHeight, boxSize, boxNumber];
+    };
   </script>
   <script data-trunk src="./js/canvaskit_demo.js" type="module"></script>
   <script data-trunk src="./js/pixijs_demo.js" type="module"></script>

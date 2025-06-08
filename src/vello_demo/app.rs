@@ -1,4 +1,6 @@
-use crate::js_bindings::{log, performance};
+use crate::js_bindings::{
+    add_event_listener_on_stop_button, log, performance, stop_app, update_fps,
+};
 use std::cell::RefCell;
 use std::rc::Rc;
 use vello::peniko::color::palette;
@@ -12,9 +14,12 @@ use winit::window::{Window, WindowId};
 
 use super::bouncing_rect::BouncingRect;
 
-pub const WIDTH: u32 = 800;
-pub const HEIGHT: u32 = 600;
-
+struct Config {
+    canvas_width: u32,
+    canvas_height: u32,
+    box_size: u32,
+    box_number: u32,
+}
 pub enum RenderState {
     /// `RenderSurface` and `Window` for active rendering.
     Active {
@@ -26,23 +31,31 @@ pub enum RenderState {
     },
     Suspend,
 }
-
 pub struct VelloApp {
     state: Rc<RefCell<RenderState>>,
     scene: Scene,
     rects: Vec<BouncingRect>,
     last_measure_time: f64,
     frame_count: i32,
+    config: Config,
+    stopped: Rc<RefCell<bool>>,
 }
 
 impl<'s> VelloApp {
-    pub fn new() -> VelloApp {
+    pub fn new(canvas_width: u32, canvas_height: u32, box_size: u32, box_number: u32) -> VelloApp {
         VelloApp {
             state: Rc::new(RefCell::new(RenderState::Suspend)),
             scene: Scene::new(),
             rects: vec![],
             last_measure_time: 0 as f64,
             frame_count: 0 as i32,
+            config: Config {
+                canvas_width,
+                canvas_height,
+                box_size,
+                box_number,
+            },
+            stopped: Rc::new(RefCell::new(false)),
         }
     }
 }
@@ -59,14 +72,23 @@ impl ApplicationHandler for VelloApp {
             use winit::platform::web::WindowExtWebSys;
 
             // Create boucing rects
-            BouncingRect::generate_rect(&mut self.rects, 10000, WIDTH as f64, HEIGHT as f64);
+            BouncingRect::generate_rect(
+                &mut self.rects,
+                self.config.box_number,
+                self.config.canvas_width as f64,
+                self.config.canvas_height as f64,
+                self.config.box_size as f64,
+            );
 
             // Initialize the winit window
             let window = Rc::new(
                 event_loop
                     .create_window(
                         Window::default_attributes()
-                            .with_inner_size(LogicalSize::new(WIDTH, HEIGHT))
+                            .with_inner_size(LogicalSize::new(
+                                self.config.canvas_width,
+                                self.config.canvas_height,
+                            ))
                             .with_resizable(true),
                     )
                     .unwrap(),
@@ -83,12 +105,19 @@ impl ApplicationHandler for VelloApp {
             // Spawn a local asynchronous task (WASM single-threaded) to initialize rendering
             // We need an async closure for the creation of RenderSurface with wgpu
             let state_rc = self.state.clone();
+            let canvas_width = self.config.canvas_width;
+            let canvas_height = self.config.canvas_height;
             wasm_bindgen_futures::spawn_local(async move {
                 let mut state = state_rc.borrow_mut();
 
                 let mut context = RenderContext::new();
                 let surface = context
-                    .create_surface(window.clone(), WIDTH, HEIGHT, wgpu::PresentMode::AutoVsync)
+                    .create_surface(
+                        window.clone(),
+                        canvas_width,
+                        canvas_height,
+                        wgpu::PresentMode::AutoVsync,
+                    )
                     .await
                     .unwrap();
 
@@ -108,6 +137,7 @@ impl ApplicationHandler for VelloApp {
                 log("state initialized!");
             });
         }
+        add_event_listener_on_stop_button(self.stopped.clone());
     }
     fn window_event(
         &mut self,
@@ -115,6 +145,12 @@ impl ApplicationHandler for VelloApp {
         window_id: WindowId,
         event: WindowEvent,
     ) {
+        if let Ok(stopped) = self.stopped.try_borrow() {
+            if *stopped {
+                stop_app(event_loop);
+            }
+        }
+
         if let Ok(mut state) = self.state.try_borrow_mut() {
             let (context, surface, window, renderers) = match &mut *state {
                 RenderState::Active {
@@ -190,25 +226,25 @@ impl ApplicationHandler for VelloApp {
                     device_handle.device.poll(wgpu::Maintain::Poll);
 
                     // Update the position of the rects
-                    self.rects
-                        .iter_mut()
-                        .for_each(|rect| rect.update(WIDTH as f64, HEIGHT as f64));
+                    self.rects.iter_mut().for_each(|rect| {
+                        rect.update(
+                            self.config.canvas_width as f64,
+                            self.config.canvas_height as f64,
+                        )
+                    });
 
                     window.request_redraw();
 
                     // Calculate the fps
                     self.frame_count += 1;
                     let now_ms = performance().now();
-                    if now_ms - self.last_measure_time > 3000.0 {
+                    if now_ms - self.last_measure_time > 1000.0 {
                         let elapsed_secs = (now_ms - self.last_measure_time) / 1000.0;
-                        let fps = (self.frame_count as f32) / (elapsed_secs as f32);
-                        log(&format!("fps: {}", fps));
+                        let fps = self.frame_count as f64 / elapsed_secs;
                         self.frame_count = 0;
                         self.last_measure_time = now_ms;
-                        // exiting the event loop after 10 seconds
-                        // if now_ms - self.start_time > 10_000.0 {
-                        //     event_loop.exit();
-                        // }
+
+                        update_fps(fps);
                     }
                 }
                 _ => (),

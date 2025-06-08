@@ -97,7 +97,6 @@ function run_canvaskit_benchmark(
         fpsEl.textContent = fps;
       }
       if (isRunning) {
-        console.log("redraw");
         surface.requestAnimationFrame(drawFrame);
       }
     }
@@ -120,7 +119,7 @@ stopButtonEl.addEventListener("click", () => {
   const canvaskitEl = document.querySelector("#canvaskit");
   if (canvaskitEl) {
     isRunning = false;
-    console.log("isRunning", isRunning);
     canvaskitEl.remove();
+    document.querySelector("#fps").textContent = "--.--";
   }
 });

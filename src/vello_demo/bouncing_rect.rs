@@ -14,30 +14,36 @@ extern "C" {
     fn random() -> f64;
 }
 
-const BOX_SIZE: f64 = 4.0;
-
 pub struct BouncingRect {
     box_x: f64,
     box_y: f64,
+    box_size: f64,
     velocity_x: f64,
     velocity_y: f64,
 }
 
 impl BouncingRect {
-    pub fn new(velocity_x: f64, velocity_y: f64, canvas_width: f64, canvas_height: f64) -> Self {
+    pub fn new(
+        velocity_x: f64,
+        velocity_y: f64,
+        canvas_width: f64,
+        canvas_height: f64,
+        box_size: f64,
+    ) -> Self {
         Self {
-            box_x: canvas_width * random(),
-            box_y: canvas_height * random(),
+            box_x: (canvas_width - box_size) * random(),
+            box_y: (canvas_height - box_size) * random(),
+            box_size,
             velocity_x,
             velocity_y,
         }
     }
 
     pub fn update(&mut self, width: f64, height: f64) {
-        if self.box_x <= 0.0 || self.box_x + BOX_SIZE > width {
+        if self.box_x <= 0.0 || self.box_x + self.box_size > width {
             self.velocity_x *= -1.0;
         }
-        if self.box_y <= 0.0 || self.box_y + BOX_SIZE > height {
+        if self.box_y <= 0.0 || self.box_y + self.box_size > height {
             self.velocity_y *= -1.0;
         }
 
@@ -49,10 +55,10 @@ impl BouncingRect {
         let rect = Rect::new(
             self.box_x,
             self.box_y,
-            self.box_x + BOX_SIZE,
-            self.box_y + BOX_SIZE,
+            self.box_x + self.box_size,
+            self.box_y + self.box_size,
         );
-        let rect_fill_color = Color::new([0.3, 0.8, 0.3, 0.7]);
+        let rect_fill_color = Color::new([0.4, 0.8, 0.4, 0.8]);
         scene.fill(
             vello::peniko::Fill::NonZero,
             Affine::IDENTITY,
@@ -64,9 +70,10 @@ impl BouncingRect {
 
     pub fn generate_rect(
         rects: &mut Vec<BouncingRect>,
-        num: i32,
+        num: u32,
         canvas_width: f64,
         canvas_height: f64,
+        box_size: f64,
     ) {
         for _ in 0..num {
             let rect = BouncingRect::new(
@@ -74,6 +81,7 @@ impl BouncingRect {
                 get_random_velocity(),
                 canvas_width,
                 canvas_height,
+                box_size,
             );
             rects.push(rect);
         }
