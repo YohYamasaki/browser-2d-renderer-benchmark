@@ -30,7 +30,7 @@
             font-size: 1.5rem;
         }
     </style>
-</head>
+<link rel="modulepreload" href="/winit-tiny-skia-e415b599c07772f0.js" crossorigin="anonymous" integrity="sha384-JOgkRhmxqyxFiGF/8bXZZuXonXY/+Ou6ZLZMoMtcy9gYZkjWVJKJWmHRfwvlNS9c"><link rel="preload" href="/winit-tiny-skia-e415b599c07772f0_bg.wasm" crossorigin="anonymous" integrity="sha384-TjY6EvZTVsp5DXdpTAAkfgKdVjv8QqLigU1aqdjHlDFzK6FGdCtF8NklG1HVsEL6" as="fetch" type="application/wasm"></head>
 
 <body>
 <strong>Canvas size(px): </strong>
@@ -122,11 +122,22 @@
         return [canvasWidth, canvasHeight, boxSize, boxNumber];
     };
 </script>
-<script data-trunk src="./js/canvas_api_demo.js" type="module"></script>
-<script data-trunk src="./js/canvaskit_demo.js" type="module"></script>
-<script data-trunk src="js/pixijs_wegbl_demo.js" type="module"></script>
-<script data-trunk src="js/pixijs_webgpu_demo.js" type="module"></script>
-<script data-trunk src="./js/benchmark.js" type="module"></script>
-</body>
+<script src="/canvas_api_demo-4754362468cac86b.js" integrity="sha384-zeBSv0Av4+WSLYj2vHq4+LYf0tyGrowtX97GmeWxnlSWQ34P5wTfopXDEHKKiFIR" type="module"></script>
+<script src="/canvaskit_demo-efb2d1908c592426.js" integrity="sha384-F6osJoYqASwJl47Ecqott+nn76bIk92qWUWT3dA7fQpItHE4Qvd3CijFNPOkDlik" type="module"></script>
+<script src="/pixijs_wegbl_demo-fffe29b9efa21b0b.js" integrity="sha384-/lXEDVwhVd+wmNBB4pwhxly1eLlf8qtr3xQA7kEAOIBfsggTS22hg+NWMZWA5tkE" type="module"></script>
+<script src="/pixijs_webgpu_demo-8704cc2efa71ed41.js" integrity="sha384-GkGJH6Zz73FTE6TfHd0K3FHqR3UTmZQP1H4Yk25RFnb1wcyqDOJ7YO7xRH/sU9rv" type="module"></script>
+<script src="/benchmark-9951204e5df044b0.js" integrity="sha384-Kot2+4k53zr4+yeiwZ1BmjrFQ7MER7bvrgEZQWM5El5Epal3zf7802IZrWgd6YqW" type="module"></script>
+
+<script type="module">
+import init, * as bindings from '/winit-tiny-skia-e415b599c07772f0.js';
+const wasm = await init({ module_or_path: '/winit-tiny-skia-e415b599c07772f0_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
 
 </html>
