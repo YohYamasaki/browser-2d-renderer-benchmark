@@ -2,79 +2,81 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <title>2D renderer demos</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://unpkg.com/canvaskit-wasm@0.19.0/bin/canvaskit.js" type="text/javascript"></script>
-  <style>
-    body {
-      font-family: monospace;
-    }
+    <meta charset="utf-8"/>
+    <title>2D renderer demos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/canvaskit-wasm@0.19.0/bin/canvaskit.js" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: monospace;
+        }
 
-    input {
-      width: 60px;
-    }
+        input {
+            width: 60px;
+        }
 
-    .chart-wrap {
-      width: 400px;
-      height: 300px;
-    }
+        .chart-wrap {
+            width: 400px;
+            height: 300px;
+        }
 
-    #window-wrap {
-      border: 2px solid #aaa;
-      width: 800px;
-      height: 600px;
-    }
+        #window-wrap {
+            border: 2px solid #aaa;
+            width: 800px;
+            height: 600px;
+        }
 
-    #fps-wrap {
-      font-size: 1.5rem;
-    }
-  </style>
+        #fps-wrap {
+            font-size: 1.5rem;
+        }
+    </style>
 </head>
 
 <body>
-  <strong>Canvas size(px): </strong>
-  <label for="canvas-width">width</label>
-  <input id="canvas-width" name="canvas-width" type="text" value="800" />
-  <label for="canvas-height">height</label>
-  <input id="canvas-height" name="canvas-height" type="text" value="600" />
+<strong>Canvas size(px): </strong>
+<label for="canvas-width">width</label>
+<input id="canvas-width" name="canvas-width" type="text" value="800"/>
+<label for="canvas-height">height</label>
+<input id="canvas-height" name="canvas-height" type="text" value="600"/>
 
-  <br /><br />
+<br/><br/>
 
-  <label for="box-size"><strong>Box size(px): </strong></label>
-  <input id="box-size" name="box-size" type="text" value="4" />
-  <br /><br />
+<label for="box-size"><strong>Box size(px): </strong></label>
+<input id="box-size" name="box-size" type="text" value="4"/>
+<br/><br/>
 
-  <label for="box-number"><strong>Number of boxes: </strong></label>
-  <input id="box-number" name="box-number" type="text" value="10000" />
+<label for="box-number"><strong>Number of boxes: </strong></label>
+<input id="box-number" name="box-number" type="text" value="10000"/>
 
-  <br />
-  <br />
+<br/>
+<br/>
 
-  <div id="start-wrap">
-    <!-- <button id="start-tiny-skia">Start tiny-skia demo</button> -->
+<div id="start-wrap">
+    <button id="start-canvas-api">Start Canvas api demo</button>
+    <button id="start-tiny-skia">Start tiny-skia demo</button>
     <button id="start-canvaskit">Start Canvaskit demo</button>
-    <button id="start-pixi">Start PixiJS demo</button>
+    <button id="start-pixi-webgl">Start PixiJS(WebGL) demo</button>
+    <button id="start-pixi-webgpu">Start PixiJS(WebGPU) demo</button>
     <button id="start-vello">Start vello demo</button>
-  </div>
-  <button id="stop" disabled>Stop demo</button>
-  <button id="benchmark">Run benchmark</button>
+</div>
+<button disabled id="stop">Stop demo</button>
+<button id="benchmark">Run benchmark</button>
 
-  <br />
+<br/>
 
-  <div id="fps-wrap">
+<div id="fps-wrap">
     <strong>Current frame per second: <span id="fps">--.--</span></strong>
-  </div>
-  <div id="window-wrap"></div>
+</div>
+<div id="window-wrap"></div>
 
-  <script>
+<script>
     const widthInputEl = document.querySelector("#canvas-width");
     const heightInputEl = document.querySelector("#canvas-height");
     const canvasWrapEl = document.querySelector("#window-wrap");
 
     function updateCanvasBorder() {
-      canvasWrapEl.style.width = widthInputEl.value + "px";
-      canvasWrapEl.style.height = heightInputEl.value + "px";
+        canvasWrapEl.style.width = widthInputEl.value + "px";
+        canvasWrapEl.style.height = heightInputEl.value + "px";
     }
 
     widthInputEl.addEventListener("input", updateCanvasBorder);
@@ -86,43 +88,45 @@
     const startEls = startWrapEl.querySelectorAll("button");
     const stopEl = document.querySelector("#stop");
     startWrapEl.addEventListener("click", (e) => {
-      if (e.target.tagName === "BUTTON") {
-        startEls.forEach(el => el.disabled = true);
-        stopEl.disabled = false;
-      }
+        if (e.target.tagName === "BUTTON") {
+            startEls.forEach(el => el.disabled = true);
+            stopEl.disabled = false;
+        }
     });
     stopEl.addEventListener("click", () => {
-      startEls.forEach(el => el.disabled = false);
-      stopEl.disabled = true;
+        startEls.forEach(el => el.disabled = false);
+        stopEl.disabled = true;
     })
-  </script>
+</script>
 
-  <script type="module">
+<script type="module">
     const tinySkiaEl = document.querySelector("#start-tiny-skia");
     tinySkiaEl.addEventListener("click", () => {
-      window.wasmBindings.run_tiny_skia_demo(...getDemoSettings());
+        window.wasmBindings.run_tiny_skia_demo(...getDemoSettings());
     });
 
     const startVelloEl = document.querySelector("#start-vello");
     startVelloEl.addEventListener("click", () => {
-      window.wasmBindings.run_vello_demo(...getDemoSettings());
+        window.wasmBindings.run_vello_demo(...getDemoSettings());
     });
 
     const getDemoSettings = () => {
-      const canvasWidth = parseInt(
-        document.querySelector("#canvas-width").value
-      );
-      const canvasHeight = parseInt(
-        document.querySelector("#canvas-height").value
-      );
-      const boxSize = parseInt(document.querySelector("#box-size").value);
-      const boxNumber = parseInt(document.querySelector("#box-number").value);
-      return [canvasWidth, canvasHeight, boxSize, boxNumber];
+        const canvasWidth = parseInt(
+            document.querySelector("#canvas-width").value
+        );
+        const canvasHeight = parseInt(
+            document.querySelector("#canvas-height").value
+        );
+        const boxSize = parseInt(document.querySelector("#box-size").value);
+        const boxNumber = parseInt(document.querySelector("#box-number").value);
+        return [canvasWidth, canvasHeight, boxSize, boxNumber];
     };
-  </script>
-  <script data-trunk src="./js/canvaskit_demo.js" type="module"></script>
-  <script data-trunk src="./js/pixijs_demo.js" type="module"></script>
-  <script data-trunk src="./js/benchmark.js" type="module"></script>
+</script>
+<script data-trunk src="./js/canvas_api_demo.js" type="module"></script>
+<script data-trunk src="./js/canvaskit_demo.js" type="module"></script>
+<script data-trunk src="js/pixijs_wegbl_demo.js" type="module"></script>
+<script data-trunk src="js/pixijs_webgpu_demo.js" type="module"></script>
+<script data-trunk src="./js/benchmark.js" type="module"></script>
 </body>
 
 </html>
