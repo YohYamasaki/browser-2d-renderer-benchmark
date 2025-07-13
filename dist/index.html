@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8"/>
+    <title>2D renderer demos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/canvaskit-wasm@0.19.0/bin/canvaskit.js" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: monospace;
+        }
+
+        input {
+            width: 60px;
+        }
+
+        .chart-wrap {
+            width: 400px;
+            height: 300px;
+        }
+
+        #window-wrap {
+            border: 2px solid #aaa;
+            width: 800px;
+            height: 600px;
+        }
+
+        #fps-wrap {
+            font-size: 1.5rem;
+        }
+    </style>
+<link rel="modulepreload" href="/winit-tiny-skia-e415b599c07772f0.js" crossorigin="anonymous" integrity="sha384-JOgkRhmxqyxFiGF/8bXZZuXonXY/+Ou6ZLZMoMtcy9gYZkjWVJKJWmHRfwvlNS9c"><link rel="preload" href="/winit-tiny-skia-e415b599c07772f0_bg.wasm" crossorigin="anonymous" integrity="sha384-TjY6EvZTVsp5DXdpTAAkfgKdVjv8QqLigU1aqdjHlDFzK6FGdCtF8NklG1HVsEL6" as="fetch" type="application/wasm"></head>
+
+<body>
+<strong>Canvas size(px): </strong>
+<label for="canvas-width">width</label>
+<input id="canvas-width" name="canvas-width" type="text" value="800"/>
+<label for="canvas-height">height</label>
+<input id="canvas-height" name="canvas-height" type="text" value="600"/>
+
+<br/><br/>
+
+<label for="box-size"><strong>Box size(px): </strong></label>
+<input id="box-size" name="box-size" type="text" value="4"/>
+<br/><br/>
+
+<label for="box-number"><strong>Number of boxes: </strong></label>
+<input id="box-number" name="box-number" type="text" value="10000"/>
+
+<br/>
+<br/>
+
+<div id="start-wrap">
+    <button id="start-canvas-api">Start Canvas api demo</button>
+    <button id="start-tiny-skia">Start tiny-skia demo</button>
+    <button id="start-canvaskit">Start Canvaskit demo</button>
+    <button id="start-pixi-webgl">Start PixiJS(WebGL) demo</button>
+    <button id="start-pixi-webgpu">Start PixiJS(WebGPU) demo</button>
+    <button id="start-vello">Start vello demo</button>
+</div>
+<button disabled id="stop">Stop demo</button>
+<!--<button id="benchmark">Run benchmark</button>-->
+
+<br/>
+
+<div id="fps-wrap">
+    <strong>Current frame per second: <span id="fps">--.--</span></strong>
+</div>
+<div id="window-wrap"></div>
+
+<script>
+    const widthInputEl = document.querySelector("#canvas-width");
+    const heightInputEl = document.querySelector("#canvas-height");
+    const canvasWrapEl = document.querySelector("#window-wrap");
+
+    function updateCanvasBorder() {
+        canvasWrapEl.style.width = widthInputEl.value + "px";
+        canvasWrapEl.style.height = heightInputEl.value + "px";
+    }
+
+    widthInputEl.addEventListener("input", updateCanvasBorder);
+    heightInputEl.addEventListener("input", updateCanvasBorder);
+
+    let isDemoRunning = false;
+
+    const startWrapEl = document.querySelector("#start-wrap");
+    const startEls = startWrapEl.querySelectorAll("button");
+    const stopEl = document.querySelector("#stop");
+    startWrapEl.addEventListener("click", (e) => {
+        if (e.target.tagName === "BUTTON") {
+            startEls.forEach(el => el.disabled = true);
+            stopEl.disabled = false;
+        }
+    });
+    stopEl.addEventListener("click", () => {
+        startEls.forEach(el => el.disabled = false);
+        stopEl.disabled = true;
+    })
+</script>
+
+<script type="module">
+    const tinySkiaEl = document.querySelector("#start-tiny-skia");
+    tinySkiaEl.addEventListener("click", () => {
+        window.wasmBindings.run_tiny_skia_demo(...getDemoSettings());
+    });
+
+    const startVelloEl = document.querySelector("#start-vello");
+    startVelloEl.addEventListener("click", () => {
+        window.wasmBindings.run_vello_demo(...getDemoSettings());
+    });
+
+    const getDemoSettings = () => {
+        const canvasWidth = parseInt(
+            document.querySelector("#canvas-width").value
+        );
+        const canvasHeight = parseInt(
+            document.querySelector("#canvas-height").value
+        );
+        const boxSize = parseInt(document.querySelector("#box-size").value);
+        const boxNumber = parseInt(document.querySelector("#box-number").value);
+        return [canvasWidth, canvasHeight, boxSize, boxNumber];
+    };
+</script>
+<script src="/canvas_api_demo-4754362468cac86b.js" integrity="sha384-zeBSv0Av4+WSLYj2vHq4+LYf0tyGrowtX97GmeWxnlSWQ34P5wTfopXDEHKKiFIR" type="module"></script>
+<script src="/canvaskit_demo-efb2d1908c592426.js" integrity="sha384-F6osJoYqASwJl47Ecqott+nn76bIk92qWUWT3dA7fQpItHE4Qvd3CijFNPOkDlik" type="module"></script>
+<script src="/pixijs_wegbl_demo-fffe29b9efa21b0b.js" integrity="sha384-/lXEDVwhVd+wmNBB4pwhxly1eLlf8qtr3xQA7kEAOIBfsggTS22hg+NWMZWA5tkE" type="module"></script>
+<script src="/pixijs_webgpu_demo-8704cc2efa71ed41.js" integrity="sha384-GkGJH6Zz73FTE6TfHd0K3FHqR3UTmZQP1H4Yk25RFnb1wcyqDOJ7YO7xRH/sU9rv" type="module"></script>
+<script src="/benchmark-9951204e5df044b0.js" integrity="sha384-Kot2+4k53zr4+yeiwZ1BmjrFQ7MER7bvrgEZQWM5El5Epal3zf7802IZrWgd6YqW" type="module"></script>
+
+<script type="module">
+import init, * as bindings from '/winit-tiny-skia-e415b599c07772f0.js';
+const wasm = await init({ module_or_path: '/winit-tiny-skia-e415b599c07772f0_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+
+</html>
