@@ -30,7 +30,7 @@
             font-size: 1.5rem;
         }
     </style>
-<link rel="modulepreload" href="/browser-2d-renderer-benchmark-332d5e4cb65c33ac.js" crossorigin="anonymous" integrity="sha384-VM7So3pmiAdqr3qqOhRiCzuP40dHyztpJFzYhaqmf9BJxLAQaOSU7WVDF6BZtCBi"><link rel="preload" href="/browser-2d-renderer-benchmark-332d5e4cb65c33ac_bg.wasm" crossorigin="anonymous" integrity="sha384-M/ibus8jQwoBjF9KjCqF0S+Sgr2N+rF/ZlR+lPSa+q7yfyj1ThhxcETUD/TdoR9G" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="./browser-2d-renderer-benchmark-332d5e4cb65c33ac.js" crossorigin="anonymous" integrity="sha384-VM7So3pmiAdqr3qqOhRiCzuP40dHyztpJFzYhaqmf9BJxLAQaOSU7WVDF6BZtCBi"><link rel="preload" href="./browser-2d-renderer-benchmark-332d5e4cb65c33ac_bg.wasm" crossorigin="anonymous" integrity="sha384-M/ibus8jQwoBjF9KjCqF0S+Sgr2N+rF/ZlR+lPSa+q7yfyj1ThhxcETUD/TdoR9G" as="fetch" type="application/wasm"></head>
 
 <body>
 <strong>Canvas size(px): </strong>
@@ -122,15 +122,15 @@
         return [canvasWidth, canvasHeight, boxSize, boxNumber];
     };
 </script>
-<script src="/canvas_api_demo-4754362468cac86b.js" integrity="sha384-zeBSv0Av4+WSLYj2vHq4+LYf0tyGrowtX97GmeWxnlSWQ34P5wTfopXDEHKKiFIR" type="module"></script>
-<script src="/canvaskit_demo-efb2d1908c592426.js" integrity="sha384-F6osJoYqASwJl47Ecqott+nn76bIk92qWUWT3dA7fQpItHE4Qvd3CijFNPOkDlik" type="module"></script>
-<script src="/pixijs_wegbl_demo-fffe29b9efa21b0b.js" integrity="sha384-/lXEDVwhVd+wmNBB4pwhxly1eLlf8qtr3xQA7kEAOIBfsggTS22hg+NWMZWA5tkE" type="module"></script>
-<script src="/pixijs_webgpu_demo-8704cc2efa71ed41.js" integrity="sha384-GkGJH6Zz73FTE6TfHd0K3FHqR3UTmZQP1H4Yk25RFnb1wcyqDOJ7YO7xRH/sU9rv" type="module"></script>
+<script src="./canvas_api_demo-4754362468cac86b.js" integrity="sha384-zeBSv0Av4+WSLYj2vHq4+LYf0tyGrowtX97GmeWxnlSWQ34P5wTfopXDEHKKiFIR" type="module"></script>
+<script src="./canvaskit_demo-efb2d1908c592426.js" integrity="sha384-F6osJoYqASwJl47Ecqott+nn76bIk92qWUWT3dA7fQpItHE4Qvd3CijFNPOkDlik" type="module"></script>
+<script src="./pixijs_wegbl_demo-fffe29b9efa21b0b.js" integrity="sha384-/lXEDVwhVd+wmNBB4pwhxly1eLlf8qtr3xQA7kEAOIBfsggTS22hg+NWMZWA5tkE" type="module"></script>
+<script src="./pixijs_webgpu_demo-8704cc2efa71ed41.js" integrity="sha384-GkGJH6Zz73FTE6TfHd0K3FHqR3UTmZQP1H4Yk25RFnb1wcyqDOJ7YO7xRH/sU9rv" type="module"></script>
 <!--<script data-trunk src="./js/benchmark.js" type="module"></script>-->
 
 <script type="module">
-import init, * as bindings from '/browser-2d-renderer-benchmark-332d5e4cb65c33ac.js';
-const wasm = await init({ module_or_path: '/browser-2d-renderer-benchmark-332d5e4cb65c33ac_bg.wasm' });
+import init, * as bindings from './browser-2d-renderer-benchmark-332d5e4cb65c33ac.js';
+const wasm = await init({ module_or_path: './browser-2d-renderer-benchmark-332d5e4cb65c33ac_bg.wasm' });
 
 
 window.wasmBindings = bindings;
