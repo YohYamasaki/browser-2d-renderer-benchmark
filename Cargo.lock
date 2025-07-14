@@ -164,6 +164,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "browser-2d-renderer-benchmark"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "console_error_panic_hook",
+ "serde-wasm-bindgen",
+ "softbuffer",
+ "tiny-skia",
+ "vello",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "winit",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2636,23 +2652,6 @@ dependencies = [
  "x11-dl",
  "x11rb",
  "xkbcommon-dl",
-]
-
-[[package]]
-name = "winit-tiny-skia"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "console_error_panic_hook",
- "log",
- "serde-wasm-bindgen",
- "softbuffer",
- "tiny-skia",
- "vello",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "winit",
 ]
 
 [[package]]

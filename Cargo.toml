@@ -1,5 +1,5 @@
 [package]
-name = "winit-tiny-skia"
+name = "browser-2d-renderer-benchmark"
 version = "0.1.0"
 edition = "2024"
 
@@ -17,4 +17,3 @@ wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.50"
 web-sys = { version = "0.3.77", features = ["Window", "Document", "HtmlElement", "Text", "Performance", "HtmlButtonElement"] }
 winit = "0.30.11"
-log = "0.4.27"
