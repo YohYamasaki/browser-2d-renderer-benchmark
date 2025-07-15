@@ -2,6 +2,8 @@
 
 https://yohyamasaki.github.io/browser-2d-renderer-benchmark/
 
+You need WebGPU to run the demo for pixi(WebGPU) and vello. See https://github.com/gpuweb/gpuweb/wiki/Implementation-Status#chromium-chrome-edge-etc
+
 - Comparison of 2D rendering engines that run on browsers
 - Comparing the performance of rendering engines is difficult, so this is only a benchmark from a certain perspective
 - Compare FPS by rendering particles bouncing off walls on Canvas
